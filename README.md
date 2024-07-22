@@ -78,8 +78,8 @@ it is possible to add packages at this stage.
 #### OR CREATE own rootfs.
 #### mount the sd-card to /mnt
         sudo mount /dev/sdX /mnt
-        debootstrap --arch=arm64 --foreign <distro> /mnt/  # for arm64 architecture
-        debootstrap --arch=armhf --foreign <distro> /mnt/  # for armhf architecture
+        sudo debootstrap --arch=arm64 --foreign <distro> /mnt/  # for arm64 architecture
+        sudo debootstrap --arch=armhf --foreign <distro> /mnt/  # for armhf architecture
 
 it is possible to use any distro from debian and ubuntu with their codename.
 
@@ -91,11 +91,11 @@ Debian 12  :  bookworm
 
 Debiam 11  :  bullseye
 
-        cp /usr/bin/qemu-arm-static /mnt/usr/bin/  # for armhf 
-        chroot /mnt /usr/bin/qemu-arm-static /bin/sh -i # for armhf
+        sudo cp /usr/bin/qemu-arm-static /mnt/usr/bin/  # for armhf 
+        sudo chroot /mnt /usr/bin/qemu-arm-static /bin/sh -i # for armhf
 
-        cp /usr/bin/qemu-aarch64-static /mnt/usr/bin/   # for arm64
-        chroot /mnt /usr/bin/qemu-aarch64-static /bin/sh -i # for arm64
+        sudo cp /usr/bin/qemu-aarch64-static /mnt/usr/bin/   # for arm64
+        sudo chroot /mnt /usr/bin/qemu-aarch64-static /bin/sh -i # for arm64
 
         /debootstrap/debootstrap --second-stage
         passwd then set the password
