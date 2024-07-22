@@ -1,0 +1,363 @@
+diff -urN ..//linux-6.9.9/arch/arm/boot/dts/allwinner/Makefile linux-6.9.9/arch/arm/boot/dts/allwinner/Makefile
+--- ..//linux-6.9.9/arch/arm/boot/dts/allwinner/Makefile	2024-07-11 14:51:24.000000000 +0400
++++ linux-6.9.9/arch/arm/boot/dts/allwinner/Makefile	2024-07-15 15:33:17.903242372 +0400
+@@ -116,6 +116,7 @@
+ 	sun6i-a31s-sinovoip-bpi-m2.dtb \
+ 	sun6i-a31s-yones-toptech-bs1078-v2.dtb
+ dtb-$(CONFIG_MACH_SUN7I) += \
++	sun7i-a20-arm-sbc-m1.dtb \
+ 	sun7i-a20-bananapi.dtb \
+ 	sun7i-a20-bananapi-m1-plus.dtb \
+ 	sun7i-a20-bananapro.dtb \
+diff -urN ..//linux-6.9.9/arch/arm/boot/dts/allwinner/sun7i-a20-arm-sbc-m1.dts linux-6.9.9/arch/arm/boot/dts/allwinner/sun7i-a20-arm-sbc-m1.dts
+--- ..//linux-6.9.9/arch/arm/boot/dts/allwinner/sun7i-a20-arm-sbc-m1.dts	1970-01-01 04:00:00.000000000 +0400
++++ linux-6.9.9/arch/arm/boot/dts/allwinner/sun7i-a20-arm-sbc-m1.dts	2024-07-15 15:52:35.900459359 +0400
+@@ -0,0 +1,282 @@
++/*
++ * Copyright 2024 Subair Mullappilly
++ *
++ * Subair Mullappilly  <msubair@hotmail.com>
++ *
++ */
++
++/dts-v1/;
++#include "sun7i-a20.dtsi"
++#include "sunxi-common-regulators.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++
++/ {
++       model = "ARM-SBC-M1";
++       compatible = "arm-sbc,sun7i-a20-arm-sbc-m1", "allwinner,sun7i-a20";
++
++       aliases {
++               serial0 = &uart0;
++               serial1 = &uart3;
++
++               spi0 = &spi1;
++               spi1 = &spi2;
++       };
++
++       chosen {
++               stdout-path = "serial0:115200n8";
++       };
++
++       hdmi-connector {
++               compatible = "hdmi-connector";
++               type = "a";
++
++               port {
++                       hdmi_con_in: endpoint {
++                               remote-endpoint = <&hdmi_out_con>;
++                       };
++               };
++       };
++       
++       mmc2_pwrseq: pwrseq {
++		compatible = "mmc-pwrseq-emmc";
++		reset-gpios = <&pio 2 16 GPIO_ACTIVE_LOW>;
++	};
++
++       speaker_amp: audio-amplifier {
++                status = "okay";
++                compatible = "simple-audio-amplifier";
++                shutdown-gpios = <&pio 7 15 GPIO_ACTIVE_HIGH>; /* Assuming Shutdown is active high */
++                mute-gpios = <&pio 7 25 GPIO_ACTIVE_LOW>; /* Assuming mute is active low */
++                sound-name-prefix = "Speaker Amp";
++        };
++
++       leds {
++               compatible = "gpio-leds";
++               pinctrl-names = "default";
++
++       };
++};
++
++&ahci {
++       target-supply = <&reg_ahci_5v>;
++       status = "okay";
++};
++
++&codec {
++       status = "okay";
++};
++
++&cpu0 {
++       cpu-supply = <&reg_dcdc2>;
++};
++
++&de {
++       status = "okay";
++};
++
++&ehci0 {
++       status = "okay";
++};
++
++&ehci1 {
++       status = "okay";
++};
++
++&gmac {
++       pinctrl-names = "default";
++       pinctrl-0 = <&gmac_mii_pins>, <&gmac_txerr>;
++       phy-handle = <&phy1>;
++       phy-mode = "mii";
++       status = "okay";
++};
++
++&mali {
++       status = "okay";
++};
++
++&hdmi {
++       status = "okay";
++};
++
++&hdmi_out {
++       hdmi_out_con: endpoint {
++               remote-endpoint = <&hdmi_con_in>;
++       };
++};
++
++&i2c0 {
++       status = "okay";
++
++       axp209: pmic@34 {
++               reg = <0x34>;
++               interrupt-parent = <&nmi_intc>;
++               interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
++       };
++};
++
++&i2c1 {
++       status = "okay";
++};
++
++
++&i2c2 {
++       status = "okay";
++
++       gt9271: gt9271@14 {
++		compatible = "goodix,gt9271";
++		reg = <0x14>;
++		interrupt-parent = <&pio>;
++		interrupts = <7 21 IRQ_TYPE_EDGE_FALLING>;
++		irq-gpios = <&pio 7 21 GPIO_ACTIVE_HIGH>;
++		reset-gpios  = <&pio 1 13 GPIO_ACTIVE_HIGH>;
++
++	};
++};
++
++&i2c3 {
++       status = "okay";
++};
++
++&i2s0 {
++       status = "okay";
++};
++
++&lradc {
++       vref-supply = <&reg_vcc3v0>;
++       status = "okay";
++};
++
++&gmac_mdio {
++       phy1: ethernet-phy@1 {
++               reg = <1>;
++       };
++};
++
++&mmc0 {
++       vmmc-supply = <&reg_vcc3v3>;
++       bus-width = <4>;
++       cd-gpios = <&pio 7 1 GPIO_ACTIVE_LOW>; /* PH1 */
++       status = "okay";
++};
++
++&mmc2 {
++	vmmc-supply = <&reg_vcc3v3>;
++	vqmmc-supply = <&reg_vcc3v3>;
++	bus-width = <4>;
++	non-removable;
++	mmc-pwrseq = <&mmc2_pwrseq>;
++	status = "okay";
++
++	emmc: emmc@0 {
++		reg = <0>;
++		compatible = "mmc-card";
++		broken-hpi;
++	};
++};
++
++&ohci0 {
++       status = "okay";
++};
++
++&ohci1 {
++       status = "okay";
++};
++
++&otg_sram {
++       status = "okay";
++};
++
++&pio {
++       gmac_txerr: gmac-txerr-pin {
++               pins = "PA17";
++               function = "gmac";
++       };
++};
++
++#include "axp209.dtsi"
++
++&ac_power_supply {
++       status = "okay";
++};
++
++&battery_power_supply {
++       status = "okay";
++};
++
++&reg_dcdc2 {
++       regulator-always-on;
++       regulator-min-microvolt = <1000000>;
++       regulator-max-microvolt = <1400000>;
++       regulator-name = "vdd-cpu";
++};
++
++&reg_dcdc3 {
++       regulator-always-on;
++       regulator-min-microvolt = <1000000>;
++       regulator-max-microvolt = <1400000>;
++       regulator-name = "vdd-int-dll";
++};
++
++&reg_ldo2 {
++       regulator-always-on;
++       regulator-min-microvolt = <3000000>;
++       regulator-max-microvolt = <3000000>;
++       regulator-name = "avcc";
++};
++
++&reg_ahci_5v {
++       status = "okay";
++};
++
++&reg_usb0_vbus {
++       status = "okay";
++};
++
++&reg_usb1_vbus {
++       status = "okay";
++};
++
++&spi1 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&spi1_pi_pins>,
++                   <&spi1_cs0_pi_pin>;
++       status = "okay";
++};
++
++&spi2 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&spi2_pc_pins>,
++                   <&spi2_cs0_pc_pin>;
++       status = "okay";
++};
++
++&uart0 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&uart0_pb_pins>;
++       status = "okay";
++};
++
++&uart3 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&uart3_pg_pins>;
++       status = "okay";
++};
++
++&usb_otg {
++       dr_mode = "otg";
++       status = "okay";
++};
++
++&usb_power_supply {
++       status = "okay";
++};
++
++&usbphy {
++       usb0_id_det-gpios = <&pio 7 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; /* PH4 */
++       usb0_vbus-supply = <&reg_usb0_vbus>;
++       usb1_vbus-supply = <&reg_usb1_vbus>;
++       status = "okay";
++};
+--- linux-6.7.4/sound/soc/codecs/simple-amplifier.c	2024-02-06 00:17:12.000000000 +0400
++++ rk3288/linux-6.7.4/sound/soc/codecs/simple-amplifier.c	2024-02-16 09:31:42.185772085 +0400
+@@ -13,6 +13,8 @@
+ 
+ struct simple_amp {
+ 	struct gpio_desc *gpiod_enable;
++	struct gpio_desc *gpiod_shutdown; /* New shutdown GPIO (PH15)*/
++	struct gpio_desc *gpiod_mute; /*New mute GPIO (PH25) */
+ };
+ 
+ static int drv_event(struct snd_soc_dapm_widget *w,
+@@ -21,13 +23,19 @@
+ 	struct snd_soc_component *c = snd_soc_dapm_to_component(w->dapm);
+ 	struct simple_amp *priv = snd_soc_component_get_drvdata(c);
+ 	int val;
++	int shutdown_val; /* Declare shutdown_val*/
++    int mute_val;     /* Declare mute_val */
+ 
+ 	switch (event) {
+ 	case SND_SOC_DAPM_POST_PMU:
+-		val = 1;
++		val = 1;/* Enable amplifier */
++		shutdown_val = 1; /* No shutdown */
++		mute_val = 0; /* Unmute */
+ 		break;
+ 	case SND_SOC_DAPM_PRE_PMD:
+-		val = 0;
++		val = 0; /*Disable amplifier*/
++		shutdown_val = 0; /* Shutdown */
++		mute_val = 1; /* Mute */
+ 		break;
+ 	default:
+ 		WARN(1, "Unexpected event");
+@@ -35,6 +43,8 @@
+ 	}
+ 
+ 	gpiod_set_value_cansleep(priv->gpiod_enable, val);
++	gpiod_set_value_cansleep(priv->gpiod_shutdown, shutdown_val);
++	gpiod_set_value_cansleep(priv->gpiod_mute, mute_val);
+ 
+ 	return 0;
+ }
+@@ -75,6 +85,23 @@
+ 		return -ENOMEM;
+ 	platform_set_drvdata(pdev, priv);
+ 
++	/*Get the enable GPIO (existing) */
++	priv->gpiod_enable = devm_gpiod_get_optional(dev, "enable", GPIOD_OUT_LOW);
++	if (IS_ERR(priv->gpiod_enable))
++		return dev_err_probe(dev, PTR_ERR(priv->gpiod_enable),
++				     "Failed to get 'enable' gpio");
++
++	/* Get the shutdown GPIO (PH15) */
++	priv->gpiod_shutdown = devm_gpiod_get_optional(dev, "shutdown", GPIOD_OUT_LOW);
++	if (IS_ERR(priv->gpiod_shutdown))
++		return dev_err_probe(dev, PTR_ERR(priv->gpiod_shutdown),
++				     "Failed to get 'shutdown' gpio");
++
++	/* Get the mute GPIO (PH25) */
++	priv->gpiod_mute = devm_gpiod_get_optional(dev, "mute", GPIOD_OUT_LOW);
++	if (IS_ERR(priv->gpiod_mute))
++		return dev_err_probe(dev, PTR_ERR(priv->gpiod_mute),
++				     "Failed to get 'mute' gpio");
+ 	priv->gpiod_enable = devm_gpiod_get_optional(dev, "enable",
+ 						     GPIOD_OUT_LOW);
+ 	if (IS_ERR(priv->gpiod_enable))
