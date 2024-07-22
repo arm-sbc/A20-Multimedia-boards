@@ -145,7 +145,8 @@ it is possible to add packages at this stage like
        deb http://deb.debian.org/debian bookworm-updates main non-free-firmware       
        deb-src http://deb.debian.org/debian bookworm-updates main non-free-firmware
 ##### make tar ball what you cretaed
-       tar -cjpf /home/user/sunxi_rootfs.tar.bz2 .
+       cd /mnt
+       sudo tar -cjpf /home/user/sunxi_rootfs.tar.bz2 .
 
        change the path as required, also the dot in the end is required
 ##### copiying kernel files
